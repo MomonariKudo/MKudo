@@ -1,0 +1,338 @@
+// Note: Before executing this code, please put the following two files into an appropriate folder
+// 1. List_of_Matrices_AutAC-N1.txt
+// 2. List_of_Matrices_AutAC-Dege.txt
+
+KK:=GF(11^2);
+K:=KK;
+
+/***************************************/
+IsGroup := function(G)
+
+	if #G eq 0 then
+
+		return false;
+
+	end if;
+
+	flag := 0;
+
+	for i in [1..#G] do
+
+		for j in [1..#G] do
+
+			h := G[i]^(-1)*G[j];
+			flag := 1;
+
+			for k in [1..#G] do
+
+				if h eq G[k] then
+
+					flag := 0;
+					break k;
+						
+				end if;
+
+			end for;
+
+			if flag eq 1 then
+
+				return false;
+
+			end if;
+
+		end for;
+
+	end for;
+
+	return true;
+
+end function;
+/***************************************/
+
+
+/***************************************/
+IsGroup2 := function(G)
+
+	G_set:=SequenceToSet(G);
+
+	if #G eq 0 then
+
+		return false;
+
+	end if;
+
+	count:=0;
+
+	flag := 0;
+
+	for i in [1..#G] do
+
+		for j in [1..#G] do
+
+			count:=count+1;
+			//count;
+
+			h := G[i]^(-1)*G[j];
+			flag := 1;
+
+			if h in G_set then
+
+				flag:=0;
+
+			end if;
+
+			if flag eq 1 then
+
+				return false;
+
+			end if;
+
+		end for;
+
+	end for;
+
+	return true;
+
+end function;
+/***************************************/
+
+
+/***************************************/
+CoeffAction := function(M, sigma)
+
+	M1:=Matrix([ [ K!0 : j in [1..Ncols(M)] ] : i in [1..Nrows(M)] ]);
+
+	for i in [1..Nrows(M)] do
+
+		for j in [1..Ncols(M)] do
+
+			M1[i,j] := M[i,j]^sigma;
+
+		end for;
+
+	end for;
+
+	return M1;
+
+end function;
+/***************************************/
+
+
+/***************************************/
+IsScalorMultiple := function(M, N)
+
+	for i in [1..Nrows(M)] do
+
+		for j in [1..Ncols(M)] do
+
+			if M[i,j] ne K!0 then
+
+				k := i;
+				l := j;
+				break i;
+
+			end if;
+
+		end for;
+
+	end for;
+
+	c := N[k,l]/M[k,l];
+
+	if c*M eq N then
+
+		return true;
+
+	else
+
+		return false;
+
+	end if;
+
+end function;
+/***************************************/
+
+
+/***************************************/
+sigma_stabilizer := function(G, g, sigma)
+
+	Stab := [];
+
+	for i in [1..#G] do
+
+		if IsScalorMultiple(g*CoeffAction(G[i],sigma), G[i]*g) then
+
+			Stab := Append(Stab, G[i]);
+
+		end if;
+
+	end for;
+
+	return Stab;
+
+end function;
+/***************************************/
+
+
+/***************************************/
+ModScalor := function(G)
+
+	flag_list := [ 0 : i in [1..#G] ];
+
+	cl := [];
+
+	for i in [1..#G] do
+
+		if flag_list[i] eq 0 then
+
+			cl := Append(cl, G[i]);
+
+			for j in [i+1..#G] do
+
+				if IsScalorMultiple(G[i], G[j]) then
+
+					flag_list[j] := 1;
+
+				end if;
+
+			end for;
+
+		end if;
+
+	end for;
+
+	return cl;
+
+end function;
+/***************************************/
+
+
+/***************************************/
+sigma_ConjugacyClasses := function(G, sigma)
+
+	flag_list := [ 0 : i in [1..#G] ];
+	classes := [];
+
+	for i in [1..#G] do
+
+		if flag_list[i] eq 0 then
+
+			classes := Append(classes, G[i]);
+
+			for j in [1..#G] do
+
+				g := G[j]^(-1)*G[i]*CoeffAction(G[j], sigma);
+
+				for k in [i+1..#G] do
+
+					if flag_list[k] eq 0 then
+
+						if IsScalorMultiple(g, G[k]) then
+
+							flag_list[k] := 1;
+
+						end if;
+
+					end if;
+
+				end for;
+
+			end for;
+
+		end if;
+
+	end for;
+
+	return classes;
+
+end function;
+/***************************************/
+
+
+
+G_List:=[];
+load"C:/Kudo/Automorphism_new/List_of_Matrices_AutAC-N1_v2.txt";
+load"C:/Kudo/Automorphism_new/List_of_Matrices_AutAC-Dege_v2.txt";
+// Load the file "List_of_Matrices_AutAC-N1.txt" and "List_of_Matrices_AutAC-Dege.txt"
+// Replace "Kudo/Automorphism_new" by the name of a folder including the files "List_of_Matrices_AutAC-N1.txt" and "List_of_Matrices_AutAC-Dege.txt"
+
+MM_N1:=[];
+for k in [1..#M_N1] do
+	M:=M_N1[k];
+	MM:=[];
+	flag_list:=[1 : i in [1..#M]];
+	for i in [1..#M] do
+		if flag_list[i] eq 1 then
+			MM:=Append(MM,M[i]);
+			for j in [i+1..#M] do
+				if Equiv(M[i],M[j],GF(11^2)) then
+					flag_list[j]:=0;
+				end if;
+			end for;
+		end if;
+	end for;
+	MM_N1[k]:=MM;
+end for;	
+
+MM_Dege:=[];
+for k in [1..#M_Dege] do
+	M:=M_Dege[k];
+	MM:=[];
+	flag_list:=[1 : i in [1..#M]];
+	for i in [1..#M] do
+		if flag_list[i] eq 1 then
+			MM:=Append(MM,M[i]);
+			for j in [i+1..#M] do
+				if Equiv(M[i],M[j],GF(11^2)) then
+					flag_list[j]:=0;
+				end if;
+			end for;
+		end if;
+	end for;
+	MM_Dege[k]:=MM;
+end for;	
+
+for i in [1..3] do
+	G_List[i]:=MM_N1[i];
+end for;
+
+for i in [4..9] do
+	G_List[i]:=MM_Dege[i-3];
+end for;
+
+
+
+/***************************************/
+/* Chack whether G_List[i] is a group or not */
+/***************************************/
+
+for i in [1..#G_List] do
+
+	"Is G_List[", i, "] a group?", IsGroup2(G_List[i]);
+
+end for;
+
+q:=11;
+sigma := q;
+
+for i in [1..#G_List] do
+"--------------------------------------------------------------------";
+	G := ModScalor(G_List[i]);
+	"#G =", #G;
+	L := sigma_ConjugacyClasses(G,sigma);
+	"The number of F-conjugacy classes in G =", #L;
+	vol:=0;
+	stabs:=[];
+
+	for M in L do
+
+		stabs:=Append(stabs, #sigma_stabilizer(G, M ,sigma));
+		vol := vol + 1/(#sigma_stabilizer(G, M ,sigma));
+
+	end for;
+
+	"List of the orders of stabilizers = ", stabs;
+	"Volume =", vol;
+
+end for;
+
